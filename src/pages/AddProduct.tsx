@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name must be at least 2 characters"),
@@ -26,6 +27,7 @@ const productSchema = z.object({
 type ProductFormValues = z.infer<typeof productSchema>;
 
 const AddProduct = () => {
+  const { toast } = useToast();
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -36,9 +38,35 @@ const AddProduct = () => {
     },
   });
 
-  function onSubmit(values: ProductFormValues) {
-    // Log the form data - you can replace this with your local database logic later
-    console.log(values);
+  async function onSubmit(values: ProductFormValues) {
+    try {
+      // Replace this URL with your backend API endpoint
+      const response = await fetch('http://your-backend-url/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save product');
+      }
+
+      toast({
+        title: "Success",
+        description: "Product added successfully",
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error('Error saving product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add product. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
