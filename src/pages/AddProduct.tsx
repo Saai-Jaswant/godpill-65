@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { Plus, ScanLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Scanner from "@/components/Scanner";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name must be at least 2 characters"),
@@ -28,6 +29,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 const AddProduct = () => {
   const { toast } = useToast();
+  const [showScanner, setShowScanner] = useState(false);
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -134,13 +136,28 @@ const AddProduct = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Barcode (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter product barcode" {...field} />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input placeholder="Enter product barcode" {...field} />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={() => setShowScanner(!showScanner)}
+                      >
+                        <ScanLine className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {showScanner && (
+                <div className="my-4">
+                  <Scanner />
+                </div>
+              )}
 
               <Button type="submit" className="w-full">
                 <Plus className="mr-2 h-4 w-4" /> Add Product
