@@ -1,9 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Scanner from './Scanner';
+import { useToast } from "@/hooks/use-toast";
 
 const LiveDemo = () => {
+  const [barcodeResult, setBarcodeResult] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleBarcodeDetected = (barcode: string) => {
+    console.log("LiveDemo detected barcode:", barcode);
+    setBarcodeResult(barcode);
+    toast({
+      title: "Barcode Detected",
+      description: `Scanned barcode: ${barcode}`,
+    });
+  };
+
   return (
     <section className="py-16 md:py-24">
       <div className="container">
@@ -17,7 +30,12 @@ const LiveDemo = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Scanner preview */}
           <div className="flex justify-center">
-            <Scanner />
+            <Scanner onBarcodeDetected={handleBarcodeDetected} />
+            {barcodeResult && (
+              <div className="absolute bottom-4 bg-background/80 backdrop-blur-sm p-3 rounded-lg">
+                <p className="font-semibold">Scanned: {barcodeResult}</p>
+              </div>
+            )}
           </div>
 
           {/* Scanner description */}

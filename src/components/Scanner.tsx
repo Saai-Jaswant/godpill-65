@@ -13,6 +13,7 @@ const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+  const scanIntervalRef = useRef<number | null>(null);
 
   const startCamera = async () => {
     try {
@@ -28,27 +29,37 @@ const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
         const ZXing = await import('@zxing/library');
         const codeReader = new ZXing.BrowserMultiFormatReader();
         
+        // Clear any existing interval
+        if (scanIntervalRef.current) {
+          clearInterval(scanIntervalRef.current);
+        }
+        
         // Start continuous scanning
-        const scanInterval = setInterval(async () => {
+        scanIntervalRef.current = window.setInterval(async () => {
           if (videoRef.current && isScanning) {
             try {
-              // Using the correct method name: decodeFromVideoElement instead of decodeOnceFromVideoElement
               const result = await codeReader.decodeFromVideoElement(videoRef.current);
-              if (result) {
-                onBarcodeDetected?.(result.getText());
+              if (result && result.getText()) {
+                const barcodeValue = result.getText();
+                console.log("Barcode detected:", barcodeValue);
+                
+                if (onBarcodeDetected) {
+                  onBarcodeDetected(barcodeValue);
+                }
+                
                 toast({
                   title: "Barcode Detected",
-                  description: "Successfully scanned barcode: " + result.getText(),
+                  description: "Successfully scanned barcode: " + barcodeValue,
                 });
+                
                 stopCamera(); // Stop after successful detection
               }
             } catch (error) {
               // Ignore errors during scanning attempts
+              console.log("Still scanning...");
             }
           }
         }, 500);
-
-        return () => clearInterval(scanInterval);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -61,6 +72,13 @@ const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
   };
 
   const stopCamera = () => {
+    // Clear scanning interval
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    
+    // Stop camera stream
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -69,6 +87,7 @@ const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
     }
   };
 
+  // Clean up on component unmount
   useEffect(() => {
     return () => {
       stopCamera();

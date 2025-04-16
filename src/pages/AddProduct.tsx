@@ -41,16 +41,18 @@ const AddProduct = () => {
   });
 
   const handleBarcodeDetected = (barcode: string) => {
+    console.log("Barcode detected in AddProduct:", barcode);
     form.setValue('barcode', barcode);
     setShowScanner(false);
     toast({
       title: "Barcode Scanned",
-      description: "Barcode has been added to the form.",
+      description: `Barcode ${barcode} has been added to the form.`,
     });
   };
 
   async function onSubmit(values: ProductFormValues) {
     try {
+      console.log("Form submitted with values:", values);
       // Replace this URL with your backend API endpoint
       const response = await fetch('http://your-backend-url/api/products', {
         method: 'POST',
