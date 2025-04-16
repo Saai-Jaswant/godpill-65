@@ -32,7 +32,8 @@ const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
         const scanInterval = setInterval(async () => {
           if (videoRef.current && isScanning) {
             try {
-              const result = await codeReader.decodeOnceFromVideoElement(videoRef.current);
+              // Using the correct method name: decodeFromVideoElement instead of decodeOnceFromVideoElement
+              const result = await codeReader.decodeFromVideoElement(videoRef.current);
               if (result) {
                 onBarcodeDetected?.(result.getText());
                 toast({
