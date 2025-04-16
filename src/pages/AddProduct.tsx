@@ -40,6 +40,15 @@ const AddProduct = () => {
     },
   });
 
+  const handleBarcodeDetected = (barcode: string) => {
+    form.setValue('barcode', barcode);
+    setShowScanner(false);
+    toast({
+      title: "Barcode Scanned",
+      description: "Barcode has been added to the form.",
+    });
+  };
+
   async function onSubmit(values: ProductFormValues) {
     try {
       // Replace this URL with your backend API endpoint
@@ -155,7 +164,7 @@ const AddProduct = () => {
 
               {showScanner && (
                 <div className="my-4">
-                  <Scanner />
+                  <Scanner onBarcodeDetected={handleBarcodeDetected} />
                 </div>
               )}
 

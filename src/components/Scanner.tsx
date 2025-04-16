@@ -5,7 +5,11 @@ import { Camera, CameraOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const Scanner = () => {
+interface ScannerProps {
+  onBarcodeDetected?: (barcode: string) => void;
+}
+
+const Scanner = ({ onBarcodeDetected }: ScannerProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
@@ -19,6 +23,31 @@ const Scanner = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setIsScanning(true);
+        
+        // Load the barcode detection library dynamically
+        const ZXing = await import('@zxing/library');
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        
+        // Start continuous scanning
+        const scanInterval = setInterval(async () => {
+          if (videoRef.current && isScanning) {
+            try {
+              const result = await codeReader.decodeOnceFromVideoElement(videoRef.current);
+              if (result) {
+                onBarcodeDetected?.(result.getText());
+                toast({
+                  title: "Barcode Detected",
+                  description: "Successfully scanned barcode: " + result.getText(),
+                });
+                stopCamera(); // Stop after successful detection
+              }
+            } catch (error) {
+              // Ignore errors during scanning attempts
+            }
+          }
+        }, 500);
+
+        return () => clearInterval(scanInterval);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
